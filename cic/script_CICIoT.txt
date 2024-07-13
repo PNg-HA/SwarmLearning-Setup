@@ -1,0 +1,179 @@
+# cat ~/.ssh/id_rsa.pub | ssh ubuntu@192.168.120.134 "cat >> ~/.ssh/authorized_keys"
+sudo rm -r host{1,2,3}
+sudo rm -r workspace/mnist/data-and-scratch{1,2,3}/{user1,user2,user3,model}
+mv workspace/mnist/data-and-scratch{1,2,3} .
+sudo rm -r logs/ workspace
+docker rm -f sn{1,2,3} swop{1,2,3} swci1 
+docker rm -f $(docker ps -a | grep 'user-env\|/sl:2' | awk '{print $1}')
+docker network rm host-{1,2,3}-net
+docker rm helper
+docker volume rm sl-cli-lib
+docker image rm tensorflow/tensorflow:2.7.0 user-env-tf2.7.0-swop:latest hello-world:latest 
+docker volume rm $(docker volume ls -q | grep swop)
+
+
+mkdir workspace && cp -r examples/mnist workspace/ && cp -r examples/utils/gen-cert workspace/mnist/ && chmod 777 -R workspace/ && mv data-and-scratch{1,2,3} workspace/mnist
+
+Host 1:
+./workspace/mnist/gen-cert -e mnist -i 1
+Host 2:
+./workspace/mnist/gen-cert -e mnist -i 2
+Host 3:
+./workspace/mnist/gen-cert -e mnist -i 3
+
+APLS_IP=192.168.120.104
+SN_1_IP=192.168.120.104
+SN_2_IP=192.168.120.118
+SN_3_IP=192.168.120.234
+HOST_1_IP=192.168.120.104
+HOST_2_IP=192.168.120.118
+HOST_3_IP=192.168.120.234
+SN_API_PORT=30304
+SN_P2P_PORT=30303
+
+
+Host 1:
+scp $HOST_2_IP:/opt/hpe/swarm-learning/workspace/mnist/cert/ca/capath/ca-2-cert.pem workspace/mnist/cert/ca/capath
+scp $HOST_3_IP:/opt/hpe/swarm-learning/workspace/mnist/cert/ca/capath/ca-3-cert.pem workspace/mnist/cert/ca/capath
+Host 2:
+scp $HOST_1_IP:/opt/hpe/swarm-learning/workspace/mnist/cert/ca/capath/ca-1-cert.pem workspace/mnist/cert/ca/capath
+scp $HOST_3_IP:/opt/hpe/swarm-learning/workspace/mnist/cert/ca/capath/ca-3-cert.pem workspace/mnist/cert/ca/capath
+Host 3:
+scp $HOST_1_IP:/opt/hpe/swarm-learning/workspace/mnist/cert/ca/capath/ca-1-cert.pem workspace/mnist/cert/ca/capath
+scp $HOST_2_IP:/opt/hpe/swarm-learning/workspace/mnist/cert/ca/capath/ca-2-cert.pem workspace/mnist/cert/ca/capath
+
+
+Thay:	
+	mnist_tf.py
+	user_env_tf_build_task
+	swarm_mnist_task:
+		"DATA_DIR": app-data
+	swop1:
+		privatedata: 
+			src: "/opt/hpe/swarm-learning/workspace/mnist/data-and-scratch1"
+	swop2: 
+		privatedata: 
+			src: "/opt/hpe/swarm-learning/workspace/mnist/data-and-scratch2"
+sed -i "s+<PROJECT-MODEL>+$(pwd)/workspace/mnist/model+g" workspace/mnist/swci/taskdefs/swarm_mnist_task.yaml
+sed -i "s+<SWARM-NETWORK>+host-1-net+g" workspace/mnist/swop/swop1_profile.yaml
+sed -i "s+<SWARM-NETWORK>+host-2-net+g" workspace/mnist/swop/swop2_profile.yaml
+sed -i "s+<SWARM-NETWORK>+host-3-net+g" workspace/mnist/swop/swop3_profile.yaml
+sed -i "s+<HOST_ADDRESS>+${HOST_1_IP}+g" workspace/mnist/swop/swop1_profile.yaml
+sed -i "s+<HOST_ADDRESS>+${HOST_2_IP}+g" workspace/mnist/swop/swop2_profile.yaml
+sed -i "s+<HOST_ADDRESS>+${HOST_3_IP}+g" workspace/mnist/swop/swop3_profile.yaml
+sed -i "s+<LICENSE-SERVER-ADDRESS>+${APLS_IP}+g" workspace/mnist/swop/swop*_profile.yaml
+sed -i "s+<PROJECT>+$(pwd)/workspace/mnist+g" workspace/mnist/swop/swop*_profile.yaml
+sed -i "s+<PROJECT-CERTS>+$(pwd)/workspace/mnist/cert+g" workspace/mnist/swop/swop*_profile.yaml
+sed -i "s+<PROJECT-CACERTS>+$(pwd)/workspace/mnist/cert/ca/capath+g" workspace/mnist/swop/swop*_profile.yaml
+FIX SWOP_1_PROFILE src: "/opt/hpe/swarm-learning/workspace/mnist/app-data"
+AND "PrivateContent: /tmp/test/app-data" IN swarm_mnist_task
+
+
+docker network create host-1-net
+docker network create host-2-net
+docker network create host-3-net
+
+
+docker volume rm sl-cli-lib
+docker volume create sl-cli-lib; docker container create --name helper -v sl-cli-lib:/data hello-world
+docker cp lib/swarmlearning-client-py3-none-manylinux_2_24_x86_64.whl helper:/data
+docker rm helper
+
+cd /opt/HP/HP\ AutoPass\ License\ Server/HP\ AutoPass\ License\ Server/HP\ AutoPass\ License\ Server/bin/
+sudo ./hpLicenseServer start
+
+Host 1:
+./scripts/bin/run-sn -d --rm --name=sn1 \
+--network=host-1-net --host-ip=${HOST_1_IP} \
+--sentinel --sn-p2p-port=${SN_P2P_PORT} \
+--sn-api-port=${SN_API_PORT} \
+--key=workspace/mnist/cert/sn-1-key.pem \
+--cert=workspace/mnist/cert/sn-1-cert.pem \
+--capath=workspace/mnist/cert/ca/capath \
+--apls-ip=${APLS_IP}
+
+./container_monitor.sh
+
+Host 2:
+./scripts/bin/run-sn -d --rm --name=sn2 \
+--network=host-2-net --host-ip=${HOST_2_IP} \
+--sentinel-ip=${SN_1_IP} --sn-p2p-port=${SN_P2P_PORT} \
+--sn-api-port=${SN_API_PORT} --key=workspace/mnist/cert/sn-2-key.pem \
+--cert=workspace/mnist/cert/sn-2-cert.pem \
+--capath=workspace/mnist/cert/ca/capath \
+--apls-ip=${APLS_IP}
+
+./container_monitor.sh
+
+Host 3:
+./scripts/bin/run-sn -d --rm --name=sn3 \
+--network=host-3-net --host-ip=${HOST_3_IP} \
+--sentinel-ip=${SN_1_IP} --sn-p2p-port=${SN_P2P_PORT} \
+--sn-api-port=${SN_API_PORT} --key=workspace/mnist/cert/sn-3-key.pem \
+--cert=workspace/mnist/cert/sn-3-cert.pem \
+--capath=workspace/mnist/cert/ca/capath \
+--apls-ip=${APLS_IP}
+
+./container_monitor.sh
+
+Host 1:
+./scripts/bin/run-swop -d --name=swop1 --network=host-1-net \
+--sn-ip=${SN_1_IP} --sn-api-port=${SN_API_PORT} \
+--usr-dir=workspace/mnist/swop --profile-file-name=swop1_profile.yaml \
+--key=workspace/mnist/cert/swop-1-key.pem \
+--cert=workspace/mnist/cert/swop-1-cert.pem \
+--capath=workspace/mnist/cert/ca/capath -e SWOP_KEEP_CONTAINERS=True -e http_proxy= -e https_proxy= \
+--apls-ip=${APLS_IP}
+
+Host 2:
+./scripts/bin/run-swop -d --name=swop2 --network=host-2-net \
+--sn-ip=${SN_2_IP} --sn-api-port=${SN_API_PORT} \
+--usr-dir=workspace/mnist/swop --profile-file-name=swop2_profile.yaml \
+--key=workspace/mnist/cert/swop-2-key.pem \
+--cert=workspace/mnist/cert/swop-2-cert.pem \
+--capath=workspace/mnist/cert/ca/capath -e SWOP_KEEP_CONTAINERS=True -e http_proxy= -e https_proxy= \
+--apls-ip=${APLS_IP}
+
+Host 3:
+./scripts/bin/run-swop -d --name=swop3 --network=host-3-net \
+--sn-ip=${SN_3_IP} --sn-api-port=${SN_API_PORT} \
+--usr-dir=workspace/mnist/swop --profile-file-name=swop3_profile.yaml \
+--key=workspace/mnist/cert/swop-3-key.pem \
+--cert=workspace/mnist/cert/swop-3-cert.pem \
+--capath=workspace/mnist/cert/ca/capath -e SWOP_KEEP_CONTAINERS=True -e http_proxy= -e https_proxy= \
+--apls-ip=${APLS_IP}
+
+
+./scripts/bin/run-swci --name=swci1 --network=host-1-net \
+--usr-dir=workspace/mnist/swci --init-script-name=swci-init \
+--key=workspace/mnist/cert/swci-1-key.pem \
+--cert=workspace/mnist/cert/swci-1-cert.pem \
+--capath=workspace/mnist/cert/ca/capath \
+-e http_proxy= -e https_proxy= --apls-ip=${APLS_IP} \
+-e SWCI_RUN_TASK_MAX_WAIT_TIME=960
+
+LogCollector: 
+sudo ./scripts/bin/swarmLogCollector "hub.myenterpriselicense.hpe.com/hpe/swarm-learning" "workspace=/opt/hpe/swarm-learning/workspace/mnist" && sudo mv /opt/logs/*swarm_log* .
+
+Host 1:
+echo "loss,accuracy" > ml1.csv
+docker logs $(docker ps -a | grep demo-swarm_mnist_task-u-0 | awk '{print $1}') | grep val_loss | awk '{print $8","$11}' >> ml1.csv
+mkdir host1; mv ml1.csv ml1.txt monitor1.csv swarm_logs_* memory_usage.csv host1
+cp -r workspace/mnist/data-and-scratch1/user1/ host1 
+
+Host 2:
+echo "loss,accuracy" > ml2.csv
+docker logs $(docker ps -a | grep demo-swarm_mnist_task-u-0 | awk '{print $1}') | grep val_loss | awk '{print $8","$11}' >> ml2.csv
+mkdir host2; mv ml2.csv ml2.txt monitor2.csv swarm_logs_* memory_usage.csv host2
+sudo chmod 777 host2.pcap; mv host2.pcap host2 
+cp -r workspace/mnist/data-and-scratch2/user2/ host2 
+
+Host 3:
+echo "loss,accuracy" > ml3.csv
+docker logs $(docker ps -a | grep demo-swarm_mnist_task-u-0 | awk '{print $1}') | grep val_loss | awk '{print $8","$11}' >> ml3.csv
+mkdir host3; mv ml3.csv ml3.txt monitor3.csv swarm_logs_* memory_usage.csv host3
+cp -r workspace/mnist/data-and-scratch3/user3/ host3 
+
+
+Delete: sudo ./scripts/bin/stop-swarm --all
+

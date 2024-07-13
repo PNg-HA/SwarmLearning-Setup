@@ -1,0 +1,51 @@
+#!/bin/bash
+
+REMOTE_USER="ubuntu"
+REMOTE_IP1="192.168.120.104"
+REMOTE_IP2="192.168.120.118"
+REMOTE_PASSWORD="pngha"
+REMOTE_COMMAND=""
+
+ssh ${REMOTE_USER}@${REMOTE_IP1} "cd /opt/hpe/swarm-learning && mv workspace/mnist/data-and-scratch{1,2,3} ."
+ssh ${REMOTE_USER}@${REMOTE_IP1} "cd /opt/hpe/swarm-learning && mv workspace/mnist/data-and-edge{1,2,3} ."
+ssh ${REMOTE_USER}@${REMOTE_IP1} "cd /opt/hpe/swarm-learning && sudo rm -r logs/ workspace"
+ssh ${REMOTE_USER}@${REMOTE_IP1} "cd /opt/hpe/swarm-learning && docker rm -f sn{1,2,3} swop{1,2,3} swci1"
+ssh ${REMOTE_USER}@${REMOTE_IP1} "cd /opt/hpe/swarm-learning && docker rm -f $(docker ps -a | grep 'user-env\|/sl:2' | awk '{print $1}')"
+ssh ${REMOTE_USER}@${REMOTE_IP1} "cd /opt/hpe/swarm-learning && docker network rm host-{1,2,3}-net"
+ssh ${REMOTE_USER}@${REMOTE_IP1} "cd /opt/hpe/swarm-learning && docker rm helper"
+ssh ${REMOTE_USER}@${REMOTE_IP1} "cd /opt/hpe/swarm-learning && docker volume rm sl-cli-lib"
+ssh ${REMOTE_USER}@${REMOTE_IP1} "cd /opt/hpe/swarm-learning && docker image rm tensorflow/tensorflow:2.7.0 user-env-tf2.7.0-swop:latest hello-world:latest"
+ssh ${REMOTE_USER}@${REMOTE_IP1} "cd /opt/hpe/swarm-learning && docker volume rm $(docker volume ls -q | grep swop)"
+
+ssh ${REMOTE_USER}@${REMOTE_IP2} "cd /opt/hpe/swarm-learning && mv workspace/mnist/data-and-scratch{1,2,3} ."
+ssh ${REMOTE_USER}@${REMOTE_IP2} "cd /opt/hpe/swarm-learning && mv workspace/mnist/data-and-edge{1,2,3} ."
+ssh ${REMOTE_USER}@${REMOTE_IP2} "cd /opt/hpe/swarm-learning && sudo rm -r logs/ workspace"
+ssh ${REMOTE_USER}@${REMOTE_IP2} "cd /opt/hpe/swarm-learning && docker rm -f sn{1,2,3} swop{1,2,3} swci1"
+ssh ${REMOTE_USER}@${REMOTE_IP2} "cd /opt/hpe/swarm-learning && docker rm -f $(docker ps -a | grep 'user-env\|/sl:2' | awk '{print $1}')"
+ssh ${REMOTE_USER}@${REMOTE_IP2} "cd /opt/hpe/swarm-learning && docker network rm host-{1,2,3}-net"
+ssh ${REMOTE_USER}@${REMOTE_IP2} "cd /opt/hpe/swarm-learning && docker rm helper"
+ssh ${REMOTE_USER}@${REMOTE_IP2} "cd /opt/hpe/swarm-learning && docker volume rm sl-cli-lib"
+ssh ${REMOTE_USER}@${REMOTE_IP2} "cd /opt/hpe/swarm-learning && docker image rm tensorflow/tensorflow:2.7.0 user-env-tf2.7.0-swop:latest hello-world:latest"
+ssh ${REMOTE_USER}@${REMOTE_IP2} "cd /opt/hpe/swarm-learning && docker volume rm $(docker volume ls -q | grep swop)"
+
+ssh ${REMOTE_USER}@${REMOTE_IP1} "cd /opt/hpe/swarm-learning && mkdir workspace && cp -r examples/mnist workspace/ && cp -r examples/utils/gen-cert workspace/mnist/ && chmod 777 -R workspace/"
+ssh ${REMOTE_USER}@${REMOTE_IP2} "cd /opt/hpe/swarm-learning && mkdir workspace && cp -r examples/mnist workspace/ && cp -r examples/utils/gen-cert workspace/mnist/ && chmod 777 -R workspace/"
+
+ssh ${REMOTE_USER}@${REMOTE_IP1} "cd /opt/hpe/swarm-learning && ./workspace/mnist/gen-cert -e mnist -i 1"
+ssh ${REMOTE_USER}@${REMOTE_IP2} "cd /opt/hpe/swarm-learning && ./workspace/mnist/gen-cert -e mnist -i 2"
+
+APLS_IP="192.168.120.104"
+SN_1_IP="192.168.120.104"
+SN_2_IP="192.168.120.118"
+HOST_1_IP="192.168.120.104"
+HOST_2_IP="192.168.120.118"
+SN_API_PORT="30304"
+SN_P2P_PORT="30303"
+
+ssh ${REMOTE_USER}@${REMOTE_IP1} "cd /opt/hpe/swarm-learning && scp $HOST_2_IP:/opt/hpe/swarm-learning/workspace/mnist/cert/ca/capath/ca-2-cert.pem /opt/hpe/swarm-learning/workspace/mnist/cert/ca/capath"
+
+ssh ${REMOTE_USER}@${REMOTE_IP2} "cd /opt/hpe/swarm-learning && scp $HOST_1_IP:/opt/hpe/swarm-learning/workspace/mnist/cert/ca/capath/ca-1-cert.pem /opt/hpe/swarm-learning/workspace/mnist/cert/ca/capath"
+ssh ${REMOTE_USER}@${REMOTE_IP1} ""
+ssh ${REMOTE_USER}@${REMOTE_IP1} ""
+ssh ${REMOTE_USER}@${REMOTE_IP1} ""
+ssh ${REMOTE_USER}@${REMOTE_IP1} ""
