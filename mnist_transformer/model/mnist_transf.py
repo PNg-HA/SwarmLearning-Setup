@@ -111,6 +111,9 @@ dropout_rate = 0.1
 model = VisionTransformer(num_patches, embed_dim, num_heads, ff_dim, num_layers, num_classes, dropout_rate)
 model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.00005), loss='binary_crossentropy', metrics=['accuracy'])
 
+sample_input_shape = (None, num_patches, X_train_scaled.shape[2])
+model.build(sample_input_shape)
+
 swarmCallback = SwarmCallback(syncFrequency=1024,
                                 minPeers=min_peers,
                                 mergeMethod="mean",
