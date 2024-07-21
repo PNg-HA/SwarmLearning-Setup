@@ -55,7 +55,7 @@ nodes:
       slport: 18000
       usrhostname: user2
       privatedata:
-        src: "/opt/hpe/swarm-learning/workspace/mnist/data-and-edge2"
+        src: "/opt/hpe/swarm-learning/workspace/mnist/data-and-scratch2"
         mType: BIND
       slenvvars: null
       usrenvvars: [SCRATCH_DIR : "user2"]

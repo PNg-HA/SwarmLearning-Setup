@@ -51,11 +51,11 @@ nodes:
             tgt: "/swarm-cert/capath"
             subPath: null
       slhostname: sl3
-      slhostip: 10.71.7.14
+      slhostip: 192.168.120.234
       slport: 18000
       usrhostname: user3
       privatedata:
-        src: "/opt/hpe/swarm-learning/workspace/mnist/data-and-edge3"
+        src: "/opt/hpe/swarm-learning/workspace/mnist/data-and-scratch3"
         mType: BIND
       slenvvars: null
       usrenvvars: [SCRATCH_DIR : "user3"]

@@ -19,7 +19,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 
 batchSize = 128
 default_max_epochs = 5
-default_min_peers = 3
+default_min_peers = 2
 
 dataDir = os.getenv('DATA_DIR', '/platform/data')
 data_path = os.path.join(dataDir, 'original_cardio_train.csv')
