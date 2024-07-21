@@ -86,10 +86,10 @@ swarmCallback.logger.setLevel(logging.DEBUG)
 
 # Train the model
 model.fit(
-    X_train_scaled, y_train,
+    X_train, y_train,
     epochs = max_epochs, 
     batch_size=batchSize, 
-    validation_data=(X_val,Y_val), 
+    validation_data=(X_test,y_test), 
     callbacks=[swarmCallback]
 )
 
