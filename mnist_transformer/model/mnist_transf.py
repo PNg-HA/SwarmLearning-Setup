@@ -4,9 +4,7 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, hamming_loss
-import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns
 
 import tensorflow as tf
 from tensorflow.keras.models import Model
