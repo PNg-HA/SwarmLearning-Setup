@@ -102,7 +102,7 @@ swarmCallback.logger.info(f'Saved the trained model - {model_path}')
 swarmCallback.logger.info('Starting inference on the test data ...')
 
 # Make predictions
-vit_y_pred = (model.predict(X_test_scaled) > 0.5).astype("int32")
+vit_y_pred = (model.predict(X_test) > 0.5).astype("int32")
 
 # Classification report
 print("\nClassification Report for ViT:")
