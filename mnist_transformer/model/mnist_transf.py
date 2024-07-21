@@ -73,13 +73,12 @@ class TransformerEncoderBlock(Layer):
         ffn_output = self.dropout2(ffn_output, training=training)
         return self.layernorm2(out1 + ffn_output)
 
-# Define the Vision Transformer (ViT) Model
 class VisionTransformer(Model):
     def __init__(self, num_patches, embed_dim, num_heads, ff_dim, num_layers, num_classes, rate=0.1):
         super(VisionTransformer, self).__init__()
         self.embedding = Dense(embed_dim)
-        self.cls_token = self.add_weight(shape=(1, 1, embed_dim), initializer='random_normal', trainable=True)
-        self.pos_embedding = self.add_weight(shape=(1, num_patches + 1, embed_dim), initializer='random_normal', trainable=True)
+        self.cls_token = self.add_weight(name='cls_token', shape=(1, 1, embed_dim), initializer='random_normal', trainable=True)
+        self.pos_embedding = self.add_weight(name='pos_embedding', shape=(1, num_patches + 1, embed_dim), initializer='random_normal', trainable=True)
         self.transformer_blocks = [TransformerEncoderBlock(embed_dim, num_heads, ff_dim, rate) for _ in range(num_layers)]
         self.dropout = Dropout(rate)
         self.layernorm = LayerNormalization(epsilon=1e-6)
@@ -97,7 +96,6 @@ class VisionTransformer(Model):
         x = self.dropout(x)
         cls_token_final = x[:, 0]
         return self.mlp_head(cls_token_final)
-
 # Parameters
 num_patches = X_train_scaled.shape[1]
 embed_dim = 64
@@ -111,8 +109,7 @@ dropout_rate = 0.1
 model = VisionTransformer(num_patches, embed_dim, num_heads, ff_dim, num_layers, num_classes, dropout_rate)
 model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.00005), loss='binary_crossentropy', metrics=['accuracy'])
 
-sample_input_shape = (None, num_patches, X_train_scaled.shape[2])
-model.build(sample_input_shape)
+model(tf.zeros((1, num_patches, 1)))
 
 swarmCallback = SwarmCallback(syncFrequency=1024,
                                 minPeers=min_peers,
