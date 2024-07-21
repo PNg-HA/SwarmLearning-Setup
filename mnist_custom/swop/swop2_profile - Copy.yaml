@@ -50,12 +50,42 @@ nodes:
             src: "<PROJECT-CACERTS>"
             tgt: "/swarm-cert/capath"
             subPath: null
-      slhostname: sl2
+      slhostname: sl3
       slhostip: <HOST_ADDRESS>
       slport: ~
-      usrhostname: user2
+      usrhostname: user3
       privatedata:
         src: "<PROJECT>"
         mType: BIND
       slenvvars: null
-      usrenvvars: [SCRATCH_DIR : "user2"]
+      usrenvvars: [SCRATCH_DIR : "user3"]
+  - slnodedef:
+      idx: 1
+      identity:
+        - attribute:
+            aType: KEY
+            mType: BIND
+            src: "<PROJECT-CERTS>/sl-2-key.pem"
+            tgt: "/swarm-cert/sl-2-key.pem"
+            subPath: null
+        - attribute:
+            aType: CERT
+            mType: BIND
+            src: "<PROJECT-CERTS>/sl-2-cert.pem"
+            tgt: "/swarm-cert/sl-2-cert.pem"
+            subPath: null
+        - attribute:
+            aType: CAPATH
+            mType: BIND
+            src: "<PROJECT-CACERTS>"
+            tgt: "/swarm-cert/capath"
+            subPath: null
+      slhostname: sl4
+      slhostip: <HOST_ADDRESS>
+      slport: ~
+      usrhostname: user4
+      privatedata:
+        src: "<PROJECT>"
+        mType: BIND
+      slenvvars: null
+      usrenvvars: [SCRATCH_DIR : "user4"]
