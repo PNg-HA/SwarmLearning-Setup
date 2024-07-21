@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, LayerNormalization, Dropout, Layer, Flatten
+from tensorflow.keras.layers import Dense, Dropout, Input, Reshape, Flatten, LayerNormalization, Permute
 from tensorflow.keras.callbacks import EarlyStopping
 
 from swarmlearning.tf import SwarmCallback
@@ -34,81 +34,47 @@ os.makedirs(scratchDir, exist_ok=True)
 model_name = 'Transf_case1_mean'
 
 # Read the dataset
-df = pd.read_csv(data_path, sep=";")
-df.head()
-df['age'] = df['age']//365
-# Preprocess data
-# Preprocess data
-X = df.drop('cardio', axis=1)  # Features
-y = df['cardio']  # Target variable
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+(X_train, y_train), (X_test, y_test) = tf.keras.datasets.mnist.load_data()
+X_train = X_train / 255.0
+X_test = X_test / 255.0
 
-scaler = StandardScaler()
-X_train_scaled = scaler.fit_transform(X_train)
-X_test_scaled = scaler.transform(X_test)
-
-# Reshape the data to add a sequence dimension
-X_train_scaled = X_train_scaled.reshape((X_train_scaled.shape[0], X_train_scaled.shape[1], 1))
-X_test_scaled = X_test_scaled.reshape((X_test_scaled.shape[0], X_test_scaled.shape[1], 1))
-X_val, Y_val = X_train_scaled, y_train
-# Define the Transformer Encoder Block
-class MLPMixerBlock(Layer):
-    def __init__(self, num_patches, hidden_dim, tokens_mlp_dim, channels_mlp_dim):
-        super(MLPMixerBlock, self).__init__()
-        self.layer_norm1 = tf.keras.layers.LayerNormalization()
-        self.mlp_tokens = Sequential([
-            Dense(tokens_mlp_dim, activation='gelu'),
-            Dense(num_patches)
-        ])
-        self.layer_norm2 = tf.keras.layers.LayerNormalization()
-        self.mlp_channels = Sequential([
-            Dense(channels_mlp_dim, activation='gelu'),
-            Dense(hidden_dim)
-        ])
-
-    def call(self, x):
-        # Token-mixing MLP
-        y = self.layer_norm1(x)
-        y = tf.transpose(y, perm=[0, 2, 1])
-        y = self.mlp_tokens(y)
-        y = tf.transpose(y, perm=[0, 2, 1])
-        x = x + y
-
-        # Channel-mixing MLP
-        y = self.layer_norm2(x)
-        y = self.mlp_channels(y)
-        x = x + y
-        return x
-
-# Define the MLP-Mixer Model
-class MLPMixer(tf.keras.Model):
-    def __init__(self, num_blocks, num_patches, hidden_dim, tokens_mlp_dim, channels_mlp_dim, num_classes):
-        super(MLPMixer, self).__init__()
-        self.stem = Dense(hidden_dim)
-        self.blocks = [MLPMixerBlock(num_patches, hidden_dim, tokens_mlp_dim, channels_mlp_dim) for _ in range(num_blocks)]
-        self.layer_norm = tf.keras.layers.LayerNormalization()
-        self.flatten = Flatten()
-        self.classifier = Dense(num_classes, activation='sigmoid')
-
-    def call(self, inputs):
-        x = self.stem(inputs)
-        for block in self.blocks:
-            x = block(x)
-        x = self.layer_norm(x)
-        x = self.flatten(x)
-        return self.classifier(x)
+# Reshape the input to have a channel dimension
+X_train = X_train.reshape(-1, 28, 28, 1)
+X_test = X_test.reshape(-1, 28, 28, 1)
 
 # Parameters
-num_blocks = 4
-hidden_dim = 64
-tokens_mlp_dim = 128
-channels_mlp_dim = 64
-num_patches = X_train_scaled.shape[1]
-num_classes = 1  # Binary classification
+patch_size = 7
+num_patches = (28 // patch_size) ** 2
+hidden_dim = 128
+tokens_mlp_dim = 256
+channels_mlp_dim = 128
+num_blocks = 2
 
-# Instantiate and compile the model
-model = MLPMixer(num_blocks, num_patches, hidden_dim, tokens_mlp_dim, channels_mlp_dim, num_classes)
-model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+# Create the MLP-Mixer model
+inputs = Input(shape=(28, 28, 1))
+x = Reshape((num_patches, patch_size*patch_size))(inputs)
+
+for _ in range(num_blocks):
+    # Token-mixing MLP
+    y = LayerNormalization()(x)
+    y = Permute((2, 1))(y)
+    y = Dense(tokens_mlp_dim, activation='gelu')(y)
+    y = Dense(num_patches, activation='gelu')(y)
+    y = Permute((2, 1))(y)
+    x = x + y
+
+    # Channel-mixing MLP
+    y = LayerNormalization()(x)
+    y = Dense(channels_mlp_dim, activation='gelu')(y)
+    y = Dense(patch_size*patch_size, activation='gelu')(y)
+    x = x + y
+
+x = LayerNormalization()(x)
+x = Flatten()(x)
+outputs = Dense(10, activation='softmax')(x)
+
+model = Model(inputs, outputs)
+model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 
 swarmCallback = SwarmCallback(syncFrequency=1024,
                                 minPeers=min_peers,
