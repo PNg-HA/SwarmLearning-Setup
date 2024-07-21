@@ -52,7 +52,7 @@ nodes:
             subPath: null
       slhostname: sl2
       slhostip: <HOST_ADDRESS>
-      slport: ~
+      slport: 17000
       usrhostname: user2
       privatedata:
         src: "<PROJECT>"

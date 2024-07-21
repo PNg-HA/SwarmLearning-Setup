@@ -51,7 +51,7 @@ nodes:
             subPath: null
       slhostname: sl1
       slhostip: <HOST_ADDRESS>
-      slport: ~
+      slport: 16000
       usrhostname: user1
       privatedata:
         src: "<PROJECT>"
