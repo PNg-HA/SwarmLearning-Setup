@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout, Input, Reshape, Flatten, LayerNormalization, Permute
+from tensorflow.keras.layers import Dense, LayerNormalization, Dropout, Layer
 from tensorflow.keras.callbacks import EarlyStopping
 
 from swarmlearning.tf import SwarmCallback
@@ -34,47 +34,82 @@ os.makedirs(scratchDir, exist_ok=True)
 model_name = 'Transf_case1_mean'
 
 # Read the dataset
-(X_train, y_train), (X_test, y_test) = tf.keras.datasets.mnist.load_data()
-X_train = X_train / 255.0
-X_test = X_test / 255.0
+df = pd.read_csv(data_path, sep=";")
+df.head()
 
-# Reshape the input to have a channel dimension
-X_train = X_train.reshape(-1, 28, 28, 1)
-X_test = X_test.reshape(-1, 28, 28, 1)
+# Preprocess data
+X = df.drop('cardio', axis=1)  # Features
+y = df['cardio']  # Target variable
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X_val, Y_val = X_train, X_test
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
 
+
+# Reshape the data to add a sequence dimension
+X_train_scaled = X_train_scaled.reshape((X_train_scaled.shape[0], X_train_scaled.shape[1], 1))
+X_test_scaled = X_test_scaled.reshape((X_test_scaled.shape[0], X_test_scaled.shape[1], 1))
+
+# Define the Transformer Encoder Block
+class TransformerEncoderBlock(Layer):
+    def __init__(self, embed_dim, num_heads, ff_dim, rate=0.1):
+        super(TransformerEncoderBlock, self).__init__()
+        self.att = tf.keras.layers.MultiHeadAttention(num_heads=num_heads, key_dim=embed_dim)
+        self.ffn = Sequential([
+            Dense(ff_dim, activation='relu'),
+            Dense(embed_dim)
+        ])
+        self.layernorm1 = LayerNormalization(epsilon=1e-6)
+        self.layernorm2 = LayerNormalization(epsilon=1e-6)
+        self.dropout1 = Dropout(rate)
+        self.dropout2 = Dropout(rate)
+
+    def call(self, inputs, training):
+        attn_output = self.att(inputs, inputs)
+        attn_output = self.dropout1(attn_output, training=training)
+        out1 = self.layernorm1(inputs + attn_output)
+        ffn_output = self.ffn(out1)
+        ffn_output = self.dropout2(ffn_output, training=training)
+        return self.layernorm2(out1 + ffn_output)
+
+class VisionTransformer(Model):
+    def __init__(self, num_patches, embed_dim, num_heads, ff_dim, num_layers, num_classes, rate=0.1):
+        super(VisionTransformer, self).__init__()
+        self.embedding = Dense(embed_dim)
+        self.cls_token = self.add_weight(name='cls_token', shape=(1, 1, embed_dim), initializer='random_normal', trainable=True)
+        self.pos_embedding = self.add_weight(name='pos_embedding', shape=(1, num_patches + 1, embed_dim), initializer='random_normal', trainable=True)
+        self.transformer_blocks = [TransformerEncoderBlock(embed_dim, num_heads, ff_dim, rate) for _ in range(num_layers)]
+        self.dropout = Dropout(rate)
+        self.layernorm = LayerNormalization(epsilon=1e-6)
+        self.mlp_head = Dense(num_classes, activation='sigmoid')
+
+    def call(self, x):
+        batch_size = tf.shape(x)[0]
+        x = self.embedding(x)
+        cls_tokens = tf.broadcast_to(self.cls_token, [batch_size, 1, tf.shape(x)[-1]])
+        x = tf.concat([cls_tokens, x], axis=1)
+        x = x + self.pos_embedding
+        for block in self.transformer_blocks:
+            x = block(x)
+        x = self.layernorm(x)
+        x = self.dropout(x)
+        cls_token_final = x[:, 0]
+        return self.mlp_head(cls_token_final)
 # Parameters
-patch_size = 7
-num_patches = (28 // patch_size) ** 2
-hidden_dim = 128
-tokens_mlp_dim = 256
-channels_mlp_dim = 128
-num_blocks = 2
+num_patches = X_train_scaled.shape[1]
+embed_dim = 64
+num_heads = 4
+ff_dim = 128
+num_layers = 4
+num_classes = 1  # Binary classification
+dropout_rate = 0.1
 
-# Create the MLP-Mixer model
-inputs = Input(shape=(28, 28, 1))
-x = Reshape((num_patches, patch_size*patch_size))(inputs)
+# Instantiate and compile the model
+model = VisionTransformer(num_patches, embed_dim, num_heads, ff_dim, num_layers, num_classes, dropout_rate)
+model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.00005), loss='binary_crossentropy', metrics=['accuracy'])
 
-for _ in range(num_blocks):
-    # Token-mixing MLP
-    y = LayerNormalization()(x)
-    y = Permute((2, 1))(y)
-    y = Dense(tokens_mlp_dim, activation='gelu')(y)
-    y = Dense(num_patches, activation='gelu')(y)
-    y = Permute((2, 1))(y)
-    x = x + y
-
-    # Channel-mixing MLP
-    y = LayerNormalization()(x)
-    y = Dense(channels_mlp_dim, activation='gelu')(y)
-    y = Dense(patch_size*patch_size, activation='gelu')(y)
-    x = x + y
-
-x = LayerNormalization()(x)
-x = Flatten()(x)
-outputs = Dense(10, activation='softmax')(x)
-
-model = Model(inputs, outputs)
-model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+model(tf.zeros((1, num_patches, 1)))
 
 swarmCallback = SwarmCallback(syncFrequency=1024,
                                 minPeers=min_peers,
@@ -86,10 +121,10 @@ swarmCallback.logger.setLevel(logging.DEBUG)
 
 # Train the model
 model.fit(
-    X_train, y_train,
+    X_train_scaled, y_train,
     epochs = max_epochs, 
     batch_size=batchSize, 
-    validation_data=(X_test,y_test), 
+    validation_data=(X_val,Y_val), 
     callbacks=[swarmCallback]
 )
 
@@ -102,7 +137,7 @@ swarmCallback.logger.info(f'Saved the trained model - {model_path}')
 swarmCallback.logger.info('Starting inference on the test data ...')
 
 # Make predictions
-vit_y_pred = (model.predict(X_test) > 0.5).astype("int32")
+vit_y_pred = (model.predict(X_test_scaled) > 0.5).astype("int32")
 
 # Classification report
 print("\nClassification Report for ViT:")
