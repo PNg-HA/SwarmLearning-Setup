@@ -6,8 +6,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 
 import tensorflow as tf
+from tensorflow.keras.layers import Input, MultiHeadAttention, LayerNormalization, Dense, Dropout, Reshape, Flatten
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Dense, Dropout, Input, MultiHeadAttention, LayerNormalization, Reshape, Flatten
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.utils import to_categorical
@@ -46,22 +46,31 @@ input_shape = (28, 28)
 
 inputs = Input(shape=input_shape)
 
+# Add positional encoding (simplified for this example)
+positions = tf.range(start=0, limit=input_shape[0], delta=1)
+positions = tf.expand_dims(positions, axis=0)
+positions = tf.tile(positions, [tf.shape(inputs)[0], 1])
+
 # Encoder part
 encoder = Reshape((28, 28))(inputs)
-encoder = MultiHeadAttention(num_heads=2, key_dim=2)(encoder, encoder)
+encoder = MultiHeadAttention(num_heads=2, key_dim=2)(encoder, encoder, positions)
 encoder = LayerNormalization()(encoder)
 encoder = Flatten()(encoder)
 encoder = Dropout(0.3)(encoder)
 
-# Decoder part
+# Decoder part (simplified, usually more complex in real Transformer)
 decoder = Reshape((28, 28))(encoder)
-decoder = MultiHeadAttention(num_heads=2, key_dim=2)(decoder, decoder)
+decoder = MultiHeadAttention(num_heads=2, key_dim=2)(decoder, decoder, positions)
 decoder = LayerNormalization()(decoder)
 decoder = Flatten()(decoder)
 decoder = Dropout(0.3)(decoder)
 decoder = Dense(64, activation='relu')(decoder)
 decoder = Dropout(0.3)(decoder)
 decoder = Dense(num_classes, activation='softmax')(decoder)
+
+model = Model(inputs=inputs, outputs=decoder)
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
 
 # Build the model
 model = Model(inputs=inputs, outputs=decoder)
