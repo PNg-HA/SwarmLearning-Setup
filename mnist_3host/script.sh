@@ -1,9 +1,9 @@
 #!/bin/bash
 
 REMOTE_USER="ubuntu"
-REMOTE_IP1="192.168.120.104"
-REMOTE_IP2="192.168.120.118"
-REMOTE_PASSWORD="pngha"
+REMOTE_IP1="192."
+REMOTE_IP2="192."
+REMOTE_PASSWORD="abc"
 REMOTE_COMMAND=""
 
 # Check for help argument
