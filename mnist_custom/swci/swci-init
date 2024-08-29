@@ -30,6 +30,7 @@ ASSIGN TASK user_env_tf_build_task TO defaulttaskbb.taskdb.sml.hpe WITH 2 PEERS
 WAIT FOR TASKRUNNER defaulttaskbb.taskdb.sml.hpe
 RESET TASKRUNNER defaulttaskbb.taskdb.sml.hpe
 EXIT ON FAILURE OFF
+LIST CONTRACTS
 
 # Build task was already run. Now build and run swarm run tasks
 
@@ -41,7 +42,7 @@ get task info swarm_mnist_task
 get task body swarm_mnist_task
 list tasks
 EXIT ON FAILURE OFF
-
+LIST CONTRACTS
 # Assign run task
 EXIT ON FAILURE
 RESET TASKRUNNER defaulttaskbb.taskdb.sml.hpe
