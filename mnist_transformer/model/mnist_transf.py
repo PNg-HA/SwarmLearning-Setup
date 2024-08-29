@@ -1,4 +1,4 @@
-import os
+    import os
 import logging
 import pandas as pd
 import numpy as np
@@ -53,14 +53,14 @@ positions = tf.tile(positions, [tf.shape(inputs)[0], 1])
 
 # Encoder part
 encoder = Reshape((28, 28))(inputs)
-encoder = MultiHeadAttention(num_heads=2, key_dim=2)(encoder, encoder, positions)
+encoder = MultiHeadAttention(num_heads=2, key_dim=2)(encoder, encoder)
 encoder = LayerNormalization()(encoder)
 encoder = Flatten()(encoder)
 encoder = Dropout(0.3)(encoder)
 
 # Decoder part (simplified, usually more complex in real Transformer)
 decoder = Reshape((28, 28))(encoder)
-decoder = MultiHeadAttention(num_heads=2, key_dim=2)(decoder, decoder, positions)
+decoder = MultiHeadAttention(num_heads=2, key_dim=2)(decoder, decoder)
 decoder = LayerNormalization()(decoder)
 decoder = Flatten()(decoder)
 decoder = Dropout(0.3)(decoder)

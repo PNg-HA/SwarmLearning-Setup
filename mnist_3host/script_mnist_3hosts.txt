@@ -1,4 +1,4 @@
-# cat ~/.ssh/id_rsa.pub | ssh pngha@172.30.4.123 "mkdir ~/.ssh; cat >> ~/.ssh/authorized_keys"
+# cat ~/.ssh/id_rsa.pub | ssh ubuntu@192.168.120.91 "mkdir ~/.ssh; cat >> ~/.ssh/authorized_keys"
 sudo rm -r workspace/mnist/data-and-scratch{1,2,3}/{user1,user2,user3,model}
 mv workspace/mnist/data-and-scratch{1,2,3} .
 sudo rm -r logs/ workspace
