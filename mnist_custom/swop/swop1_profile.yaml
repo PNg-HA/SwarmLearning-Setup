@@ -13,7 +13,7 @@ network: host-1-net
 apls:
   locator:
     host: <LICENSE-SERVER-ADDRESS>
-    port: ~
+    port: 443
 apisrv:
   locator:
     host: ~
