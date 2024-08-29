@@ -56,6 +56,8 @@ EXIT ON FAILURE OFF
 # List and reset training contract
 EXIT ON FAILURE
 LIST CONTRACTS
+GET CONTRACT INFO defaultbb.cqdb.sml.hpe
+GET CONTRACT STATUS defaultbb.cqdb.sml.hpe
 RESET CONTRACT defaultbb.cqdb.sml.hpe
 EXIT ON FAILURE OFF
 
