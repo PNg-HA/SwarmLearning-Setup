@@ -68,7 +68,7 @@ swarmCallback = SwarmCallback(syncFrequency=100,
 swarmCallback.logger.setLevel(logging.DEBUG)
 # es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=PATIENCE)
 # mc = ModelCheckpoint(best_model_filename + '.h5', monitor='val_accuracy', mode='max', verbose=1, save_best_only=True)
-model.fit([x_train, x_train], y_train, epochs=default_max_epochs, batch_size=128, validation_data=([x_test, x_test], callbacks=[swarmCallback]))
+model.fit([x_train, x_train], y_train, epochs=default_max_epochs, batch_size=128, validation_data=([x_test, x_test]), callbacks=[swarmCallback])
 
 
 
