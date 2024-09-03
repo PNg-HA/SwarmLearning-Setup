@@ -34,7 +34,7 @@ scratchDir = os.getenv('SCRATCH_DIR', '/platform/scratch')
 os.makedirs(scratchDir, exist_ok=True)
 model_name = 'Lucid'
 
-def Conv2DModel(input_shape, kernel_col, kernels=64, kernel_rows=3, learning_rate=0.01, regularization=None, dropout=None):
+def Conv2DModel(input_shape, kernel_col, kernels=64, kernel_rows=3, learning_rate=0.001, regularization=None, dropout=None):
     # K.clear_session()
 
     model = Sequential()
