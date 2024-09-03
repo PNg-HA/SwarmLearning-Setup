@@ -63,7 +63,7 @@ swarmCallback = SwarmCallback(syncFrequency=100,
                                 minPeers=min_peers,
                                 mergeMethod="mean",
                                 useAdaptiveSync=False,
-                                adsValData=(x_test, y_test),
+                                adsValData=([x_test, x_test], y_test),
                                 adsValBatchSize=128)
 swarmCallback.logger.setLevel(logging.DEBUG)
 # es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=PATIENCE)
