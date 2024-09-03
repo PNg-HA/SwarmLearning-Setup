@@ -83,7 +83,7 @@ X_val, Y_val = shuffle(X_val, Y_val, random_state=SEED)
 model = Conv2DModel(input_shape=X_train.shape[1:], kernel_col=X_train.shape[2])
 
 # Create Swarm callback
-swarmCallback = SwarmCallback(syncFrequency=1024,
+swarmCallback = SwarmCallback(syncFrequency=100,
                                 minPeers=min_peers,
                                 mergeMethod="mean",
                                 useAdaptiveSync=False,
