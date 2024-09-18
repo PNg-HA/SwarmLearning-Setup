@@ -139,7 +139,7 @@ swarmCallback.logger.setLevel(logging.DEBUG)
 # mc = ModelCheckpoint(best_model_filename + '.h5', monitor='val_accuracy', mode='max', verbose=1, save_best_only=True)
 optimizer = Adam(learning_rate=0.0001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
 model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
-model.fit([X_val_1, X_val_2], epochs=default_max_epochs, batch_size=batchSize, validation_data=([X_val_1, X_val_2], Y_val_1), callbacks=[swarmCallback])
+model.fit([X_train_1, X_train_2], Y_train_1, epochs=default_max_epochs, batch_size=batchSize, validation_data=([X_val_1, X_val_2], Y_val_1), callbacks=[swarmCallback])
 
 # best_model = model
 # best_model.save(best_model_filename + '.h5')
@@ -156,7 +156,7 @@ loss, accuracy = model.evaluate([X_test_1, X_test_2], Y_test_1)
 print(f'Validation loss: {loss:.4f}, Validation accuracy: {accuracy:.4f}')
 
 Y_pred_val = (model.predict([X_test_1, X_test_2]) > 0.5)
-Y_true_val = Y_val_1.reshape((Y_val_1.shape[0], 1))
+Y_true_val = Y_test_1.reshape((Y_test_1.shape[0], 1))
 f1_score_val = f1_score(Y_true_val, Y_pred_val)
 accuracy = accuracy_score(Y_true_val, Y_pred_val)
 
