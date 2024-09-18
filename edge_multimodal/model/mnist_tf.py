@@ -34,7 +34,7 @@ default_min_peers = 2
 num_unique_classes = 19
 
 dataDir = os.getenv('DATA_DIR', '/platform/data')
-data_path_h5 = os.path.join(dataDir, '7t-10n-Edge2022-dataset-train.h5')
+data_path_h5 = os.path.join(dataDir, '7t-10n-Edge2022-dataset-train.hdf5')
 data_path_csv = os.path.join(dataDir, 'train.csv')
 # test_path = os.path.join(dataDir, 'test.csv')
 # val_path = os.path.join(dataDir, '10t-10n-DOS2019-dataset-val.hdf5')
