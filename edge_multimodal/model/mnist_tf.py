@@ -35,7 +35,7 @@ num_unique_classes = 19
 
 dataDir = os.getenv('DATA_DIR', '/platform/data')
 data_path_h5 = os.path.join(dataDir, '7t-10n-Edge2022-dataset-train.hdf5')
-data_path_csv = os.path.join(dataDir, 'train.csv')
+
 # test_path = os.path.join(dataDir, 'test.csv')
 # val_path = os.path.join(dataDir, '10t-10n-DOS2019-dataset-val.hdf5')
 data_path_csv = os.path.join(dataDir, 'train.csv')
@@ -137,7 +137,8 @@ swarmCallback.logger.setLevel(logging.DEBUG)
 # es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=PATIENCE)
 # best_model_filename = OUTPUT_FOLDER + str(time_window) + 't-' + str(max_flow_len) + 'n-' + model_name
 # mc = ModelCheckpoint(best_model_filename + '.h5', monitor='val_accuracy', mode='max', verbose=1, save_best_only=True)
-
+optimizer = Adam(learning_rate=0.0001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 model.fit([X_val_1, X_val_2], epochs=default_max_epochs, batch_size=batchSize, validation_data=([X_val_1, X_val_2], Y_val_1), callbacks=[swarmCallback])
 
 # best_model = model
