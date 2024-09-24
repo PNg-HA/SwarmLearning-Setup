@@ -137,7 +137,7 @@ swarmCallback.logger.setLevel(logging.DEBUG)
 # es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=PATIENCE)
 # best_model_filename = OUTPUT_FOLDER + str(time_window) + 't-' + str(max_flow_len) + 'n-' + model_name
 # mc = ModelCheckpoint(best_model_filename + '.h5', monitor='val_accuracy', mode='max', verbose=1, save_best_only=True)
-optimizer = Adam(learning_rate=0.0001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+optimizer = Adam(learning_rate=0.0001)
 model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 model.fit([X_train_1, X_train_2], Y_train_1, epochs=default_max_epochs, batch_size=batchSize, validation_data=([X_val_1, X_val_2], Y_val_1), callbacks=[swarmCallback])
 
