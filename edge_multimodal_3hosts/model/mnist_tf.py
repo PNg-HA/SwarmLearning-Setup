@@ -29,7 +29,7 @@ np.random.seed(SEED)
 rn.seed(SEED)
 tf.random.set_seed(SEED)
 batchSize = 128
-default_max_epochs = 5
+default_max_epochs = 10
 default_min_peers = 3
 num_unique_classes = 19
 

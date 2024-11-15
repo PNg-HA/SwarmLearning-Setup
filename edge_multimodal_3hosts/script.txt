@@ -17,4 +17,4 @@ Host 3:
 echo "loss,accuracy" > ml3.csv
 docker logs $(docker ps -a | grep demo-swarm_mnist_task-u-0 | awk '{print $1}') | grep val_loss | awk '{print $8","$11}' >> ml3.csv
 mkdir host3; mv ml3.csv ml3.txt swarm_logs_* memory_usage.csv host3
-cp -r workspace/mnist/data-and-edge3/user3/ host3 
+cp -r workspace/mnist/dataset/user3/ host3 
