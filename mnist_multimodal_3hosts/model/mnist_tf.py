@@ -14,7 +14,7 @@ from keras.layers.merge import concatenate
 from swarmlearning.tf import SwarmCallback
 # Seed Random Numbers
 batchSize = 128
-default_max_epochs = 5
+default_max_epochs = 10
 default_min_peers = 2
 num_unique_classes = 19
 
