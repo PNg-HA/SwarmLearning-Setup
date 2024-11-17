@@ -28,7 +28,7 @@ from swarmlearning.tf import SwarmCallback
 np.random.seed(SEED)
 rn.seed(SEED)
 tf.random.set_seed(SEED)
-batchSize = 128
+batchSize = 1024
 default_max_epochs = 10
 default_min_peers = 3
 num_unique_classes = 19
@@ -130,7 +130,7 @@ output = Dense(1, activation='sigmoid')(combined)
 model = Model(inputs=[input_1, input_2], outputs=output)
 
 # Create Swarm callback
-swarmCallback = SwarmCallback(syncFrequency=100,
+swarmCallback = SwarmCallback(syncFrequency=1024,
                                 minPeers=min_peers,
                                 mergeMethod="mean",
                                 useAdaptiveSync=False,
