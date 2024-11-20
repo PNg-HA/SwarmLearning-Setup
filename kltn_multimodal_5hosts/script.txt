@@ -18,3 +18,15 @@ echo "loss,accuracy" > ml3.csv
 docker logs $(docker ps -a | grep demo-swarm_mnist_task-u-0 | awk '{print $1}') | grep val_loss | awk '{print $8","$11}' >> ml3.csv
 mkdir host3; mv ml3.csv ml3.txt swarm_logs_* memory_usage.csv host3
 cp -r workspace/mnist/dataset/user3/ host3 
+
+Host 4:
+echo "loss,accuracy" > ml4.csv
+docker logs $(docker ps -a | grep demo-swarm_mnist_task-u-0 | awk '{print $1}') | grep val_loss | awk '{print $8","$11}' >> ml4.csv
+mkdir host4; mv ml4.csv ml4.txt swarm_logs_* memory_usage.csv host4
+cp -r workspace/mnist/dataset/user4/ host4 
+
+Host 5:
+echo "loss,accuracy" > ml5.csv
+docker logs $(docker ps -a | grep demo-swarm_mnist_task-u-0 | awk '{print $1}') | grep val_loss | awk '{print $8","$11}' >> ml5.csv
+mkdir host5; mv ml5.csv ml5.txt swarm_logs_* memory_usage.csv host5
+cp -r workspace/mnist/dataset/user5/ host5 

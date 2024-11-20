@@ -31,7 +31,6 @@ tf.random.set_seed(SEED)
 batchSize = 1024
 default_max_epochs = 10
 default_min_peers = 3
-num_unique_classes = 19
 
 dataDir = os.getenv('DATA_DIR', '/platform/data')
 data_path_h5 = os.path.join(dataDir, 'train.hdf5')
