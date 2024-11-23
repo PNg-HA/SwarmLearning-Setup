@@ -28,7 +28,7 @@ from swarmlearning.tf import SwarmCallback
 np.random.seed(SEED)
 rn.seed(SEED)
 tf.random.set_seed(SEED)
-batchSize = 1024
+batchSize = 128
 default_max_epochs = 10
 default_min_peers = 3
 
@@ -42,12 +42,12 @@ data_path_csv = os.path.join(dataDir, 'train.csv')
 val_path_csv = os.path.join(dataDir, 'val.csv')
 test_path_csv = os.path.join(dataDir, 'test.csv')
 print ("data path: ", data_path_h5)
-print ("model: DNN")
+print ("model: multimodal CNN mean")
 max_epochs = int(os.getenv('MAX_EPOCHS', str(default_max_epochs)))
 min_peers = int(os.getenv('MIN_PEERS', str(default_min_peers)))
 scratchDir = os.getenv('SCRATCH_DIR', '/platform/scratch')
 os.makedirs(scratchDir, exist_ok=True)
-model_name = 'Lucid'
+model_name = 'edge_3host_mean'
 
 # subfolders = glob.glob(train_path + "/*/")
 # if len(subfolders) == 0:  # only one folder case
