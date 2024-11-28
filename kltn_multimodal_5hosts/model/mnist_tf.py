@@ -30,7 +30,7 @@ np.random.seed(SEED)
 rn.seed(SEED)
 tf.random.set_seed(SEED)
 batchSize = 128
-default_max_epochs = 10
+default_max_epochs = 20
 default_min_peers = 5
 
 dataDir = os.getenv('DATA_DIR', '/platform/data')
