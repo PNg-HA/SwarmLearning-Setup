@@ -151,7 +151,7 @@ swarmCallback.logger.setLevel(logging.DEBUG)
 # mc = ModelCheckpoint(best_model_filename + '.h5', monitor='val_accuracy', mode='max', verbose=1, save_best_only=True)
 optimizer = Adam(learning_rate=0.0001)
 model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
-model.fit([X_train_1, X_train_2], Y_train_1, epochs=default_max_epochs, batch_size=batchSize, validation_data=([X_val_1, X_val_2], Y_val_1), callbacks=[swarmCallback])
+model.fit([X_train_1, X_train_2], Y_train_1, epochs=default_max_epochs, batch_size=batchSize, validation_data=([X_val_1, X_val_2], Y_val_1), callbacks=[swarmCallback, early_stopping])
 
 # best_model = model
 # best_model.save(best_model_filename + '.h5')
