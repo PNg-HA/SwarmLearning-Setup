@@ -24,6 +24,15 @@ from tensorflow.keras.layers import Conv2D
 # from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from util_functions import *
 from swarmlearning.tf import SwarmCallback
+from tensorflow.keras.callbacks import EarlyStopping
+
+# Define the EarlyStopping callback
+early_stopping = EarlyStopping(
+    monitor='val_loss',  # Metric to monitor ('val_loss', 'val_accuracy', etc.)
+    patience=6,          # Number of epochs to wait for improvement
+    verbose=1,           # Prints a message when stopping
+    restore_best_weights=True  # Restore the best weights after stopping
+)
 
 # Seed Random Numbers
 np.random.seed(SEED)
