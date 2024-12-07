@@ -52,12 +52,12 @@ data_path_csv = os.path.join(dataDir, 'train.csv')
 val_path_csv = os.path.join(dataDir, 'val.csv')
 test_path_csv = os.path.join(dataDir, 'test.csv')
 print ("data path: ", data_path_h5)
-print ("model: CNN_CSV mean")
+print ("model: CNN_CSV coord")
 max_epochs = int(os.getenv('MAX_EPOCHS', str(default_max_epochs)))
 min_peers = int(os.getenv('MIN_PEERS', str(default_min_peers)))
 scratchDir = os.getenv('SCRATCH_DIR', '/platform/scratch')
 os.makedirs(scratchDir, exist_ok=True)
-model_name = 'kltn_csv_mean'
+model_name = 'kltn_csv_coord'
 
 # subfolders = glob.glob(train_path + "/*/")
 # if len(subfolders) == 0:  # only one folder case
@@ -151,7 +151,7 @@ model.add(Dense(1, activation='sigmoid', name='fc1'))
 # Create Swarm callback
 swarmCallback = SwarmCallback(syncFrequency=1024,
                                 minPeers=min_peers,
-                                mergeMethod="mean",
+                                mergeMethod="coordmedian",
                                 useAdaptiveSync=False,
                                 adsValData=(X_val_1, Y_val_1),
                                 adsValBatchSize=128)
