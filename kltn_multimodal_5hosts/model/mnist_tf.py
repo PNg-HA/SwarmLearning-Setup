@@ -39,7 +39,7 @@ np.random.seed(SEED)
 rn.seed(SEED)
 tf.random.set_seed(SEED)
 batchSize = 128
-default_max_epochs = 20
+default_max_epochs = 10
 default_min_peers = 5
 
 dataDir = os.getenv('DATA_DIR', '/platform/data')
@@ -108,13 +108,13 @@ X_test_2[X_columns] = scaler.fit_transform(X_test_2[X_columns])
 
 print ("X_train_1, X_val_1, X_test_1:", X_train_1.shape, X_val_1.shape, X_test_1.shape)
 # Define the first branch model
+
 input_1 = Input(shape=X_train_1.shape[1:])
 x1 = Conv2D(64, (3, X_train_1.shape[2]), strides=(1, 1), name='conv0')(input_1)
 x1 = Activation('relu')(x1)
 x1 = GlobalMaxPooling2D()(x1)
 x1 = Flatten()(x1)
 x1 = Dense(60, activation='relu')(x1)
-# x1 = Dense(1, activation='sigmoid', name='fc1')(x1)
 
 
 # Define the second branch model
@@ -123,8 +123,6 @@ x2 = Conv1D(74, 5, activation='relu')(input_2)
 x2 = Conv1D(50, 5, activation='relu')(x2)
 x2 = GlobalAveragePooling1D()(x2)
 x2 = Dense(60, activation='relu')(x2)
-# x2 = Dropout(0.3)(x2)
-# x2 = Dense(60, activation='relu')(x2)
 x2 = Dropout(0.3)(x2)
 x2 = Dense(60, activation='relu')(x2)
 
